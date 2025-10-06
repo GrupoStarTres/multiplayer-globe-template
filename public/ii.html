@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ecualizador YOuP 13 Bandas</title>
+  <style>
+    body { background: #181818; color: #FFF; font-family: 'Inter', sans-serif; padding: 2em; }
+    .eq-container { background: #222; border-radius: 12px; padding: 2em; max-width: 900px; margin: auto; }
+    .eq-bands { display: flex; gap: 18px; justify-content: center; margin-bottom: 2em; }
+    .band { display: flex; flex-direction: column; align-items: center; width: 50px; }
+    .band-label { font-size: 0.85em; color: #00d4ff; margin-bottom: 0.5em; }
+    .band-slider { writing-mode: bt-lr; width: 100%; height: 120px; }
+    .band-value { font-size: 0.8em; color: #ccc; margin-top: 0.4em; }
+    .controls { text-align: center; margin-top: 1em; }
+    button { background: #00d4ff; color: #222; border: none; border-radius: 8px; padding: 0.6em 1.2em; cursor: pointer; }
+    audio { width: 100%; margin-top: 2em; }
+  </style>
+</head>
+<body>
+  <div class="eq-container">
+    <h2>Ecualizador YOuP 13 Bandas</h2>
+    <div class="eq-bands" id="eqBands"></div>
+    <div class="controls">
+      <input type="file" id="fileInput" accept="audio/*">
+      <button id="eqToggle">Desactivar EQ</button>
+    </div>
+    <audio id="audioPlayer" controls></audio>
+  </div>
+
+  <script>
+    // Configuración de frecuencias
+    const frequencies = [55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711];
+    const labels = ["55Hz", "89Hz", "144Hz", "233Hz", "377Hz", "610Hz", "987Hz", "1.6KHz", "2.6KHz", "4.2KHz", "6.8KHz", "10.9KHz", "17.7KHz"];
+
+    // Estado
+    let audioContext, sourceNode, eqFilters = [], eqActive = true;
+
+    // DOM
+    const eqBandsDiv = document.getElementById('eqBands');
+    const fileInput = document.getElementById('fileInput');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const eqToggle = document.getElementById('eqToggle');
+
+    // Crear sliders y filtros
+    function createEq() {
+      eqBandsDiv.innerHTML = '';
+      eqFilters = [];
+      for (let i = 0; i < frequencies.length; i++) {
+        // Crear filtro
+        let filter = audioContext.createBiquadFilter();
+        filter.type = 'peaking';
+        filter.frequency.value = frequencies[i];
+        filter.Q.value = 1.0;
+        filter.gain.value = 0;
+        eqFilters.push(filter);
+
+        // Crear UI
+        let bandDiv = document.createElement('div');
+        bandDiv.className = 'band';
+
+        let label = document.createElement('div');
+        label.className = 'band-label';
+        label.textContent = labels[i];
+
+        let slider = document.createElement('input');
+        slider.type = 'range'; slider.className = 'band-slider';
+        slider.min = -13; slider.max = 13; slider.value = 0; slider.step = 1;
+        slider.oninput = function() {
+          filter.gain.value = Number(this.value);
+          valueDiv.textContent = this.value + ' dB';
+        };
+
+        let valueDiv = document.createElement('div');
+        valueDiv.className = 'band-value';
+        valueDiv.textContent = '0 dB';
+
+        bandDiv.append(label, slider, valueDiv);
+        eqBandsDiv.appendChild(bandDiv);
+      }
+    }
+
+    // Conectar filtros en cadena
+    function connectEq() {
+      if (!sourceNode) return;
+      sourceNode.disconnect();
+      eqFilters.forEach(f => f.disconnect());
+      if (eqActive) {
+        sourceNode.connect(eqFilters[0]);
+        for (let i = 0; i < eqFilters.length - 1; i++)
+          eqFilters[i].connect(eqFilters[i+1]);
+        eqFilters[eqFilters.length - 1].connect(audioContext.destination);
+      } else {
+        sourceNode.connect(audioContext.destination);
+      }
+    }
+
+    // Inicializar EQ y contexto
+    function initEQ() {
+      if (audioContext) audioContext.close();
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      createEq();
+      sourceNode = audioContext.createMediaElementSource(audioPlayer);
+      connectEq();
+    }
+
+    // Toggle EQ
+    eqToggle.onclick = function() {
+      eqActive = !eqActive;
+      eqToggle.textContent = eqActive ? 'Desactivar EQ' : 'Activar EQ';
+      connectEq();
+    };
+
+    // Cargar audio
+    fileInput.onchange = function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        audioPlayer.src = URL.createObjectURL(file);
+        setTimeout(() => {
+          initEQ();
+        }, 500);
+      }
+    };
+  </script>
+</body>
+</html>
