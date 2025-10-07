@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>YOuP Ecualizador 13 Bandas</title>
+  <style>
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    .youp-eq-container {
+      background: #111;
+      border-radius: 14px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 2rem 2.5rem 2rem;
+      box-shadow: 0 0 30px #00d4ff33;
+      border: 1px solid #222;
+    }
+    .youp-eq-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.8rem;
+      background: linear-gradient(135deg, #fff, #00d4ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .youp-eq-bands {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .youp-eq-band {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 55px;
+      min-width: 45px;
+    }
+    .youp-eq-label {
+      font-size: 0.8em;
+      color: #00d4ff;
+      margin-bottom: 0.4em;
+    }
+    .youp-eq-slider {
+      writing-mode: bt-lr;
+      width: 36px;
+      height: 110px;
+      margin-bottom: 0.3em;
+      background: #222;
+      border-radius: 8px;
+      border: none;
+      accent-color: #00d4ff;
+    }
+    .youp-eq-value {
+      font-size: 0.77em;
+      color: #ff3bf2;
+      margin-top: 0.1em;
+      height: 1.2em;
+    }
+    .youp-eq-controls {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 1.4rem;
+      align-items: center;
+    }
+    .youp-eq-toggle {
+      padding: 0.8em 2em;
+      background: #ff3bf2;
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      font-weight: 700;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+      box-shadow: 0 0 12px #ff3bf2aa;
+    }
+    .youp-eq-toggle.off {
+      background: #222;
+      color: #777;
+      opacity: 0.7;
+      box-shadow: none;
+    }
+    .youp-eq-status {
+      text-align: center;
+      margin-top: 1.5em;
+      color: #00d4ff;
+      font-size: 1em;
+      min-height: 1.1em;
+    }
+    @media (max-width: 700px) {
+      .youp-eq-bands {
+        gap: 0.5rem;
+      }
+      .youp-eq-band { width: 30px; min-width: 30px; }
+      .youp-eq-slider { width: 24px; height: 70px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="youp-eq-container">
+    <div class="youp-eq-header">Ecualizador YOuP 13 Bandas</div>
+    <div class="youp-eq-bands" id="bands"></div>
+    <div class="youp-eq-controls">
+      <button id="toggleEq" class="youp-eq-toggle">🟢 ON</button>
+    </div>
+    <div class="youp-eq-status" id="eqStatus">Ecualizador activo</div>
+  </div>
+
+  <script>
+    const freqLabels = ["55Hz","89Hz","144Hz","233Hz","377Hz","610Hz","987Hz","1.6KHz","2.6KHz","4.2KHz","6.8KHz","10.9KHz","17.7KHz"];
+    const bandsDiv = document.getElementById('bands');
+    const toggleBtn = document.getElementById('toggleEq');
+    const statusDiv = document.getElementById('eqStatus');
+    let eqOn = true;
+    let eqValues = Array(13).fill(0);
+
+    function createBands() {
+      bandsDiv.innerHTML = '';
+      freqLabels.forEach((label, idx) => {
+        const band = document.createElement('div');
+        band.className = 'youp-eq-band';
+        band.innerHTML = `
+          <div class="youp-eq-label">${label}</div>
+          <input type="range" min="-13" max="13" value="0" step="1" class="youp-eq-slider" id="slider${idx}" ${eqOn ? '' : 'disabled'}>
+          <div class="youp-eq-value" id="val${idx}">0 dB</div>
+        `;
+        bandsDiv.appendChild(band);
+
+        document.getElementById(`slider${idx}`).addEventListener('input', e => {
+          eqValues[idx] = e.target.value;
+          document.getElementById(`val${idx}`).textContent = `${e.target.value} dB`;
+        });
+      });
+    }
+
+    toggleBtn.onclick = () => {
+      eqOn = !eqOn;
+      toggleBtn.textContent = eqOn ? '🟢 ON' : '⚪ OFF';
+      toggleBtn.classList.toggle('off', !eqOn);
+      statusDiv.textContent = eqOn ? 'Ecualizador activo' : 'Ecualizador apagado';
+      for (let i = 0; i < freqLabels.length; i++) {
+        document.getElementById(`slider${i}`).disabled = !eqOn;
+        document.getElementById(`val${i}`).textContent = eqOn ? `${eqValues[i]} dB` : '--';
+      }
+    };
+
+    createBands();
+  </script>
+</body>
+</html>
