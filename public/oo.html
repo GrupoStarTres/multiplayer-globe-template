@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ecualizador YOuP 13 Bandas - Demostración</title>
+    <title>Ecualizador YOuP - Control de Volumen Pre-EQ</title>
     <style>
         :root {
             --bg-primary: #121212;
@@ -14,7 +14,8 @@
             --surface: rgba(255, 255, 255, 0.06);
             --border: rgba(255, 255, 255, 0.1);
             --eq-glow: #ff3bf2;
-            --grid-color: rgba(255, 255, 255, 0.05);
+            --warning: #ff6b6b;
+            --safe: #51cf66;
         }
         
         * {
@@ -110,6 +111,29 @@
             font-size: 0.9rem;
         }
         
+        .audio-quality {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .quality-badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .quality-41k {
+            background: var(--warning);
+            color: #000;
+        }
+        
+        .quality-hi-res {
+            background: var(--safe);
+            color: #000;
+        }
+        
         .player-controls {
             display: flex;
             align-items: center;
@@ -170,30 +194,6 @@
             color: var(--text-secondary);
         }
         
-        .volume-control {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .volume-slider {
-            flex: 1;
-            height: 5px;
-            -webkit-appearance: none;
-            background: var(--surface);
-            border-radius: 3px;
-            outline: none;
-        }
-        
-        .volume-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            background: var(--accent);
-            cursor: pointer;
-        }
-        
         /* Estilos del Ecualizador */
         .eq-header {
             display: flex;
@@ -227,6 +227,82 @@
             opacity: 0.6;
             background: var(--surface);
             color: var(--text-primary);
+        }
+        
+        /* Control de Volumen Pre-EQ */
+        .pre-eq-volume {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+        
+        .volume-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+        
+        .volume-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .volume-value {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .volume-warning {
+            color: var(--warning);
+            font-size: 0.7rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .volume-safe {
+            color: var(--safe);
+            font-size: 0.7rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .volume-slider-pre-eq {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            background: var(--surface);
+            border-radius: 3px;
+            outline: none;
+            margin-top: 0.5rem;
+        }
+        
+        .volume-slider-pre-eq::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: 2px solid #000;
+        }
+        
+        .volume-slider-pre-eq::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: 2px solid #000;
         }
         
         .eq-presets {
@@ -393,8 +469,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>Ecualizador YOuP 13 Bandas - Demostración</h1>
-            <p class="subtitle">Integración del ecualizador basado en secuencia Fibonacci en un reproductor de audio</p>
+            <h1>Ecualizador YOuP - Control de Volumen Pre-EQ</h1>
+            <p class="subtitle">Control de volumen previo al ecualizador con configuración automática por calidad de audio</p>
         </header>
         
         <div class="demo-content">
@@ -407,6 +483,10 @@
                         <h3>Canción de Ejemplo</h3>
                         <p>Artista Demostración</p>
                         <p>Álbum: Integración EQ</p>
+                        <div class="audio-quality">
+                            <span class="quality-badge quality-41k" id="qualityBadge">44.1kHz 16-bit</span>
+                            <button class="control-btn" id="toggleQuality" style="width: 30px; height: 30px; font-size: 0.8rem;">🔄</button>
+                        </div>
                     </div>
                 </div>
                 
@@ -424,12 +504,6 @@
                     <span>1:23</span>
                     <span>3:45</span>
                 </div>
-                
-                <div class="volume-control">
-                    <span>🔈</span>
-                    <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="0.7">
-                    <span>🔊</span>
-                </div>
             </div>
             
             <div class="eq-section">
@@ -439,6 +513,21 @@
                         <p>13 Bandas Fibonacci</p>
                     </div>
                     <button class="eq-toggle active" id="eqToggle">🎛️ EQ Activado</button>
+                </div>
+                
+                <!-- Control de Volumen Pre-EQ -->
+                <div class="pre-eq-volume">
+                    <div class="volume-header">
+                        <span class="volume-title">Volumen Pre-EQ</span>
+                        <span class="volume-value" id="preEqVolumeValue">21%</span>
+                    </div>
+                    <input type="range" class="volume-slider-pre-eq" id="preEqVolumeSlider" min="0" max="100" value="21">
+                    <div class="volume-warning" id="volumeWarning">
+                        ⚠️ Volumen limitado al 21% para audio 44.1kHz/16-bit
+                    </div>
+                    <div class="volume-safe" id="volumeSafe" style="display: none;">
+                        ✅ Volumen al 100% - Audio Hi-Res 192kHz/24-bit
+                    </div>
                 </div>
                 
                 <div class="eq-presets">
@@ -455,20 +544,20 @@
                 </div>
                 
                 <div class="eq-status" id="eqStatus">
-                    Modo: EQ Activo - Preset: Activo
+                    Modo: EQ Activo - Preset: Activo - Volumen Pre-EQ: 21%
                 </div>
             </div>
         </div>
         
         <div class="visualization">
-            <h3 class="viz-title">Visualización de Audio con EQ Aplicado</h3>
+            <h3 class="viz-title">Visualización de Audio con Control de Volumen Pre-EQ</h3>
             <div class="viz-canvas">
-                Visualización del espectro de frecuencia (se activaría con audio real)
+                Señal de audio procesada: Volumen Pre-EQ → Ecualizador 13 Bandas → Salida
             </div>
         </div>
         
         <footer>
-            Ecualizador YOuP 13 Bandas Fibonacci &copy; 2023 - Diseñado para una experiencia auditiva superior
+            Ecualizador YOuP 13 Bandas Fibonacci &copy; 2023 - Control de Volumen Pre-EQ por Calidad de Audio
         </footer>
     </div>
 
@@ -486,17 +575,26 @@
         let isEQActive = true;
         let currentPreset = 'dance';
         let gainValues = [...presets.dance];
+        let audioQuality = '44.1kHz-16bit'; // '44.1kHz-16bit' o '192kHz-24bit'
+        let preEqVolume = 21; // Porcentaje de volumen pre-EQ
         
         // Elementos DOM
         const eqBands = document.getElementById('eqBands');
         const eqToggle = document.getElementById('eqToggle');
         const eqStatus = document.getElementById('eqStatus');
         const presetButtons = document.querySelectorAll('.preset-btn');
+        const preEqVolumeSlider = document.getElementById('preEqVolumeSlider');
+        const preEqVolumeValue = document.getElementById('preEqVolumeValue');
+        const volumeWarning = document.getElementById('volumeWarning');
+        const volumeSafe = document.getElementById('volumeSafe');
+        const qualityBadge = document.getElementById('qualityBadge');
+        const toggleQuality = document.getElementById('toggleQuality');
         
         // Inicializar
         function init() {
             createBandSliders();
             setupEventListeners();
+            updateAudioQualitySettings();
             updateEQStatus();
         }
         
@@ -548,6 +646,47 @@
             });
         }
         
+        // Actualizar configuración según calidad de audio
+        function updateAudioQualitySettings() {
+            if (audioQuality === '44.1kHz-16bit') {
+                // Limitar volumen al 21% para audio estándar
+                preEqVolume = 21;
+                preEqVolumeSlider.value = 21;
+                preEqVolumeSlider.max = 21; // Limitar el slider máximo
+                
+                // Actualizar UI
+                preEqVolumeValue.textContent = '21%';
+                volumeWarning.style.display = 'flex';
+                volumeSafe.style.display = 'none';
+                qualityBadge.textContent = '44.1kHz 16-bit';
+                qualityBadge.className = 'quality-badge quality-41k';
+                
+            } else {
+                // Audio Hi-Res - volumen completo
+                preEqVolume = 100;
+                preEqVolumeSlider.value = 100;
+                preEqVolumeSlider.max = 100; // Slider completo
+                
+                // Actualizar UI
+                preEqVolumeValue.textContent = '100%';
+                volumeWarning.style.display = 'none';
+                volumeSafe.style.display = 'flex';
+                qualityBadge.textContent = '192kHz 24-bit';
+                qualityBadge.className = 'quality-badge quality-hi-res';
+            }
+            
+            updateEQStatus();
+            
+            // En una implementación real, aquí aplicarías el volumen al nodo de ganancia
+            console.log(`Calidad de audio: ${audioQuality}, Volumen Pre-EQ: ${preEqVolume}%`);
+        }
+        
+        // Alternar entre calidades de audio
+        function toggleAudioQuality() {
+            audioQuality = audioQuality === '44.1kHz-16bit' ? '192kHz-24bit' : '44.1kHz-16bit';
+            updateAudioQualitySettings();
+        }
+        
         // Aplicar un preset
         function applyPreset(presetName) {
             if (!presets[presetName]) return;
@@ -592,9 +731,28 @@
             console.log(`EQ ${isEQActive ? 'activado' : 'desactivado'}`);
         }
         
+        // Actualizar volumen Pre-EQ
+        function updatePreEqVolume(value) {
+            preEqVolume = parseInt(value);
+            preEqVolumeValue.textContent = `${preEqVolume}%`;
+            
+            // Si es audio estándar, forzar el límite del 21%
+            if (audioQuality === '44.1kHz-16bit' && preEqVolume > 21) {
+                preEqVolume = 21;
+                preEqVolumeSlider.value = 21;
+                preEqVolumeValue.textContent = '21%';
+            }
+            
+            updateEQStatus();
+            
+            // En una implementación real, aquí actualizarías el nodo de ganancia Pre-EQ
+            console.log(`Volumen Pre-EQ actualizado: ${preEqVolume}%`);
+        }
+        
         // Actualizar estado del EQ
         function updateEQStatus() {
             let statusText = `EQ: ${isEQActive ? 'Activado' : 'Desactivado'}`;
+            statusText += ` | Volumen Pre-EQ: ${preEqVolume}%`;
             
             if (isEQActive) {
                 if (currentPreset === 'manual') {
@@ -625,6 +783,14 @@
                     }
                 });
             });
+            
+            // Control de volumen Pre-EQ
+            preEqVolumeSlider.addEventListener('input', function() {
+                updatePreEqVolume(this.value);
+            });
+            
+            // Toggle de calidad de audio
+            toggleQuality.addEventListener('click', toggleAudioQuality);
             
             // Botón de reproducción (simulación)
             document.querySelector('.play-btn').addEventListener('click', function() {
